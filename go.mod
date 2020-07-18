@@ -12,11 +12,12 @@ require (
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/uuid v1.1.1 // indirect
-	github.com/robfig/cron/v3 v3.0.1
 	github.com/shomali11/util v0.0.0-20200329021417-91c54758c87b
 	github.com/shopspring/decimal v1.2.0
 	go.uber.org/zap v1.15.0 // indirect
-	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
-	google.golang.org/genproto v0.0.0-20200715011427-11fb19a81f2c // indirect
+	golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529
 	google.golang.org/grpc v1.30.0 // indirect
 )
+
+// 替换为v1.26.0版本的gRPC库
+replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
