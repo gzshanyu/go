@@ -14,8 +14,9 @@ require (
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/shomali11/util v0.0.0-20200329021417-91c54758c87b
 	github.com/shopspring/decimal v1.2.0
+	go.mongodb.org/mongo-driver v1.3.5
 	go.uber.org/zap v1.15.0 // indirect
-	golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529
+	golang.org/x/crypto v0.0.0-20190530122614-20be4c3c3ed5
 	google.golang.org/grpc v1.30.0 // indirect
 )
 
