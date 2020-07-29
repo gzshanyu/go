@@ -34,28 +34,28 @@ func UniqueId() string {
 }
 
 // 计算总价
-func CalculateTotalPrice (price float32, num int32) float32 {
+func CalculateTotalPrice(price float32, num int32) float32 {
 	value, _ := decimal.NewFromFloat32(price).Mul(decimal.NewFromInt32(num)).Round(2).Float64()
 	return float32(value)
 }
 
 // 计算折扣
-func CalculateRate (price1 float32, price2 float32) float32 {
+func CalculateRate(price1 float32, price2 float32) float32 {
 	if price2 <= 0 {
 		return 0
 	}
-	value,_ := decimal.NewFromFloat32(price1).Div(decimal.NewFromFloat32(price2)).Mul(decimal.NewFromInt32(100)).Round(2).Float64()
+	value, _ := decimal.NewFromFloat32(price1).Div(decimal.NewFromFloat32(price2)).Mul(decimal.NewFromInt32(100)).Round(2).Float64()
 	return float32(value)
 }
 
 // 计算折扣价格
-func CalculatePriceByRate (price float32, rate float32) float32 {
+func CalculatePriceByRate(price float32, rate float32) float32 {
 	value, _ := decimal.NewFromFloat32(price).Mul(decimal.NewFromFloat32(rate)).Div(decimal.NewFromFloat32(100)).Float64()
 	return float32(value)
 }
 
 // 数组是否包含某元素（string）
-func IsContainString (items []string, item string) bool {
+func IsContainString(items []string, item string) bool {
 	for _, eachItem := range items {
 		if eachItem == item {
 			return true
@@ -65,7 +65,7 @@ func IsContainString (items []string, item string) bool {
 }
 
 // 数组是否包含某元素（int32）
-func IsContainInt32 (items []int32, item int32) bool {
+func IsContainInt32(items []int32, item int32) bool {
 	for _, eachItem := range items {
 		if eachItem == item {
 			return true
@@ -75,7 +75,7 @@ func IsContainInt32 (items []int32, item int32) bool {
 }
 
 // 数组是否包含某元素（int64）
-func IsContainInt64 (items []int64, item int64) bool {
+func IsContainInt64(items []int64, item int64) bool {
 	for _, eachItem := range items {
 		if eachItem == item {
 			return true
@@ -85,9 +85,9 @@ func IsContainInt64 (items []int64, item int64) bool {
 }
 
 // 二分法反转数组
-func Reverse (arr *[]string, length int) {
+func Reverse(arr *[]string, length int) {
 	var temp string
-	for i := 0; i < length/2; i ++ {
+	for i := 0; i < length/2; i++ {
 		temp = (*arr)[i]
 		(*arr)[i] = (*arr)[length-1-i]
 		(*arr)[length-1-i] = temp
@@ -115,7 +115,7 @@ func GetDistance(lng1, lat1, lng2, lat2 float64) float64 {
 	lat2 = lat2 * rad
 	lng2 = lng2 * rad
 	theta := lng2 - lng1
-	dist := math.Acos(math.Sin(lat1)*math.Sin(lat2) + math.Cos(lat1)*math.Cos(lat2)*math.Cos(theta)) * radius
+	dist := math.Acos(math.Sin(lat1)*math.Sin(lat2)+math.Cos(lat1)*math.Cos(lat2)*math.Cos(theta)) * radius
 	dist, _ = decimal.NewFromFloat32(float32(dist)).Round(2).Float64()
 
 	return dist
@@ -141,7 +141,7 @@ func IsPointInRegion(point map[string]float64, pList []map[string]float64) bool 
 
 	var cnt = len(pList)
 
-	for i := 0; i < cnt; i ++ {
+	for i := 0; i < cnt; i++ {
 		if _, ok := pList[i]["x"]; !ok {
 			return false
 		}
@@ -151,7 +151,7 @@ func IsPointInRegion(point map[string]float64, pList []map[string]float64) bool 
 
 		// 相邻的两个点
 		var p1 = pList[i]
-		var p2 = pList[(i + 1) % cnt]
+		var p2 = pList[(i+1)%cnt]
 		if _, ok := p1["x"]; !ok {
 			return false
 		}
@@ -180,7 +180,7 @@ func IsPointInRegion(point map[string]float64, pList []map[string]float64) bool 
 			if p1["y"] == point["y"] {
 				// 三点共线，则判断点是否在中间,如果在中间，则必然在两点间，则射线（不是直线）必与此多边形有一交点
 				if point["x"] >= minPintX && point["x"] <= maxPintX {
-					nCross ++
+					nCross++
 				}
 			}
 
@@ -194,14 +194,14 @@ func IsPointInRegion(point map[string]float64, pList []map[string]float64) bool 
 		}
 
 		// 求出交点的坐标x
-		var x = (point["y"] - p1["y"]) * (p2["x"] - p1["x"]) / (p2["y"] - p1["y"]) + p1["x"]
+		var x = (point["y"]-p1["y"])*(p2["x"]-p1["x"])/(p2["y"]-p1["y"]) + p1["x"]
 		// 统计左射线或右射线与边的交点都可以，此处统计的是右射线与多边形边的交点
 		if x > point["x"] {
-			nCross ++
+			nCross++
 		}
 	}
 
-	if nCross % 2 == 1 {
+	if nCross%2 == 1 {
 		return true
 	} else {
 		return false
@@ -233,7 +233,7 @@ func IsPointInCircular(point map[string]float64, cPoint map[string]float64, radi
 	}
 
 	var distance = float32(GetDistance(point["y"], point["x"], cPoint["y"], cPoint["x"]))
-	if distance > radius * 1000 {
+	if distance > radius*1000 {
 		return false
 	} else {
 		return true
@@ -253,3 +253,24 @@ func JsonDecode(s string) interface{} {
 	return out
 }
 
+// 数字转换为Excel列A-Z
+func ConvertNumToExcelChars(num int) (string, error) {
+	var (
+		excelChar []string
+		cols      string
+		v         int
+	)
+
+	excelChar = []string{"", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
+	v = num
+	for v > 0 {
+		k := v % 26
+		if k == 0 {
+			k = 26
+		}
+		v = (v - k) / 26
+		cols = excelChar[k] + cols
+	}
+
+	return cols, nil
+}
