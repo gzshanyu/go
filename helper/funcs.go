@@ -254,7 +254,7 @@ func JsonDecode(s string) interface{} {
 }
 
 // 数字转换为Excel列A-Z
-func ConvertNumToExcelChars(num int) (string, error) {
+func ConvertNumToExcelChars(num int) string {
 	var (
 		excelChar []string
 		cols      string
@@ -272,5 +272,5 @@ func ConvertNumToExcelChars(num int) (string, error) {
 		cols = excelChar[k] + cols
 	}
 
-	return cols, nil
+	return cols
 }
