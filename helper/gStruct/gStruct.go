@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func DeepFields (ifaceType reflect.Type) []reflect.StructField {
+func DeepFields(ifaceType reflect.Type) []reflect.StructField {
 	var fields []reflect.StructField
 
 	for i := 0; i < ifaceType.NumField(); i++ {
@@ -66,8 +66,8 @@ func StructCopy(DstStructPtr interface{}, SrcStructPtr interface{}) {
 	return
 }
 
-// ToMap 结构体转为Map[string]interface{}
-func StructToMap(in interface{}, tagName string) (interface{}, error){
+// 结构体转为Map[string]interface{}
+func Struct2Map(in interface{}, tagName string) (interface{}, error) {
 	out := make(map[string]interface{})
 
 	v := reflect.ValueOf(in)
@@ -75,7 +75,7 @@ func StructToMap(in interface{}, tagName string) (interface{}, error){
 		v = v.Elem()
 	}
 
-	if v.Kind() != reflect.Struct {  // 非结构体返回错误提示
+	if v.Kind() != reflect.Struct { // 非结构体返回错误提示
 		return nil, fmt.Errorf("ToMap only accepts gStruct or gStruct pointer; got %T", v)
 	}
 
@@ -89,6 +89,56 @@ func StructToMap(in interface{}, tagName string) (interface{}, error){
 		fi := t.Field(i)
 		if tagValue := fi.Tag.Get(tagName); tagValue != "" {
 			out[tagValue] = v.Field(i).Interface()
+		}
+	}
+	return out, nil
+}
+
+// 获取结构体中某标签的值集合
+func GetTagValue(in interface{}, tagName string) ([]interface{}, error) {
+	out := make([]interface{}, 0)
+
+	v := reflect.ValueOf(in)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct { // 非结构体返回错误提示
+		return nil, fmt.Errorf("ToMap only accepts struct or struct pointer; got %T", v)
+	}
+
+	t := v.Type()
+	// 遍历结构体字段
+	// 指定tagName值为map中key;字段值为map中value
+	for i := 0; i < v.NumField(); i++ {
+		fi := t.Field(i)
+		if tagValue := fi.Tag.Get(tagName); tagValue != "" {
+			out = append(out, tagValue)
+		}
+	}
+	return out, nil
+}
+
+// 获取结构体字段的值集合
+func GetValue(in interface{}, tagName string) ([]interface{}, error) {
+	out := make([]interface{}, 0)
+
+	v := reflect.ValueOf(in)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct { // 非结构体返回错误提示
+		return nil, fmt.Errorf("ToMap only accepts struct or struct pointer; got %T", v)
+	}
+
+	t := v.Type()
+	// 遍历结构体字段
+	// 指定tagName值为map中key;字段值为map中value
+	for i := 0; i < v.NumField(); i++ {
+		fi := t.Field(i)
+		if tagValue := fi.Tag.Get(tagName); tagValue != "" {
+			out = append(out, v.Field(i).Interface())
 		}
 	}
 	return out, nil
