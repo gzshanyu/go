@@ -212,7 +212,7 @@ func IsSameDate(date1 time.Time, date2 time.Time) bool {
 // 获取传入的时间所在月份的第一天，即某月第一天的0点。如传入time.Now(), 返回当前月份的第一天0点时间。
 func GetFirstDateOfMonth(d time.Time) time.Time {
 	d = d.AddDate(0, 0, -d.Day()+1)
-	return GetZeroTime(d)
+	return ParseFirstDayOfMonthMorning(d)
 }
 
 // 获取传入的时间所在月份的最后一天，即某月最后一天的0点。如传入time.Now(), 返回当前月份的最后一天0点时间。
