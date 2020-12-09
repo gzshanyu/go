@@ -3,90 +3,131 @@ package http
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"time"
+	"errors"
+	"github.com/valyala/fasthttp"
+	"log"
+	"net/url"
 )
 
-type RequestOption struct {
+type RequestQueries map[string]string
+
+type FastRequestParams struct {
+	Url         string
 	ContentType string
 	Method      string
-	Headers     map[string]string
+	Body        []byte
 }
 
-//生成最新请求Option
-func makeOptions(options ...RequestOption) *RequestOption {
-	opts := &RequestOption{
-		ContentType: "application/json",
-		Method:      "POST",
-	}
-	if options != nil {
-		option := options[0]
-		if option.ContentType != "" {
-			opts.ContentType = option.ContentType
+func FastDo(in FastRequestParams, out interface{}) error {
+	var (
+		err      error
+		httpReq  *fasthttp.Request
+		httpResp *fasthttp.Response
+	)
+
+	httpReq = fasthttp.AcquireRequest()
+	httpResp = fasthttp.AcquireResponse()
+	defer func() {
+		fasthttp.ReleaseRequest(httpReq)
+		fasthttp.ReleaseResponse(httpResp)
+	}()
+
+	switch in.Method {
+	case "GET":
+	case "POST":
+		if in.ContentType != "" {
+			httpReq.Header.SetContentType(in.ContentType)
 		}
-		if option.Method != "" {
-			opts.Method = option.Method
-		}
+	default:
+		return errors.New("http method must 'GET' or 'POST'")
 	}
-	return opts
+
+	httpReq.Header.SetMethod(in.Method)
+	httpReq.SetRequestURI(in.Url)
+	httpReq.SetBody(in.Body)
+
+	if err = fasthttp.Do(httpReq, httpResp); err != nil {
+		return nil
+	}
+
+	log.Println("resp:", string(httpResp.Body()))
+	return json.NewDecoder(bytes.NewReader(httpResp.Body())).Decode(out)
 }
 
-//发送POST请求
-//url:请求地址，data:POST请求提交的数据,contentType:请求体格式，如：application/json
-//content:请求放回的内容
-func HttpRequest(url string, data interface{}, options ...RequestOption) ([]byte, error) {
-	var opts *RequestOption
-	if options != nil {
-		opts = makeOptions(options[0])
-	} else {
-		opts = makeOptions()
+func EncodeURL(baseurl string, params RequestQueries) (string, error) {
+	var (
+		err     error
+		_url    *url.URL
+		_values url.Values
+	)
+
+	if _url, err = url.Parse(baseurl); err != nil {
+		return "", err
 	}
-	jsonStr, _ := json.Marshal(data)
-	req, err := http.NewRequest(opts.Method, url, bytes.NewBuffer(jsonStr))
-	req.Header.Add("content-type", opts.ContentType)
-	if opts.Headers != nil {
-		for k, v := range opts.Headers {
-			if v != "content-type" {
-				req.Header.Add(k, v)
-			}
+
+	_values = _url.Query()
+	for k, v := range params {
+		_values.Set(k, v)
+	}
+
+	_url.RawQuery = _values.Encode()
+
+	return _url.String(), nil
+}
+
+func Get(api string, response interface{}) error {
+	var (
+		err  error
+		resp *fasthttp.Response
+		req  *fasthttp.Request
+	)
+
+	req = fasthttp.AcquireRequest()
+	defer fasthttp.ReleaseRequest(req)
+
+	req.Header.SetMethod("GET")
+	req.SetRequestURI(api)
+
+	resp = fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(resp)
+
+	if err = fasthttp.Do(req, resp); err != nil {
+		return nil
+	}
+
+	log.Println("get resp:", string(resp.Body()))
+	return json.NewDecoder(bytes.NewReader(resp.Body())).Decode(response)
+}
+
+func PostJSON(api string, params, response interface{}) error {
+	var (
+		err     error
+		resp    *fasthttp.Response
+		req     *fasthttp.Request
+		reqBody []byte
+	)
+
+	if params != nil {
+		if reqBody, err = json.Marshal(params); err != nil {
+			return nil
 		}
 	}
 
-	if err != nil {
-		return nil, err
+	req = fasthttp.AcquireRequest()
+	defer fasthttp.ReleaseRequest(req)
+
+	req.Header.SetContentType("application/json")
+	req.Header.SetMethod("POST")
+	req.SetRequestURI(api)
+	req.SetBody(reqBody)
+
+	resp = fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(resp)
+
+	if err = fasthttp.Do(req, resp); err != nil {
+		return err
 	}
-	defer req.Body.Close()
 
-	client := &http.Client{Timeout: 5 * time.Second}
-	resp, error := client.Do(req)
-	if error != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	result, _ := ioutil.ReadAll(resp.Body)
-	return result, nil
-}
-
-//代理请求（相当于请求转发）
-func HttpProxy(url string, w http.ResponseWriter, r *http.Request) ([]byte, error) {
-	client := &http.Client{}
-
-	//提交请求
-	request, err := http.NewRequest(r.Method, url, r.Body)
-	request.Header = r.Header
-
-	if err != nil {
-		return nil, err
-	}
-	//处理返回结果
-	response, _ := client.Do(request)
-	defer response.Body.Close()
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
-	return body, nil
+	log.Println("post resp:", string(resp.Body()))
+	return json.NewDecoder(bytes.NewReader(resp.Body())).Decode(response)
 }
